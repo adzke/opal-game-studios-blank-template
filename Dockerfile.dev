@@ -1,0 +1,23 @@
+FROM oven/bun:1
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3 \
+    pkg-config \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY package.json ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/game/package.json ./packages/game/
+
+RUN bun install
+
+COPY . .
+
+EXPOSE 3000
+EXPOSE 3001
+
+CMD ["bun", "server/index.js"]

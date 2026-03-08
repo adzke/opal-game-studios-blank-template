@@ -1,0 +1,34 @@
+@import '@awesome.me/webawesome/dist/styles/webawesome.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import '@opal/game/style.css';
+
+:root {
+    color-scheme: light;
+    --page-bg: #f8fafc;
+    --panel-bg: #ffffff;
+    --panel-border: #dbe4f0;
+    --text-strong: #0f172a;
+    --text-muted: #475569;
+    --accent: #2563eb;
+}
+
+html,
+body {
+    min-height: 100%;
+    background: var(--page-bg);
+    color: var(--text-strong);
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}

@@ -1,0 +1,44 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    working_dir: /app
+    command:
+      [
+        "sh",
+        "-lc",
+        "[ -d /app/node_modules/supertokens-node ] || bun install; exec bun --watch server/index.js"
+      ]
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: ${DATABASE_URL:-postgres://template_user:template_pass@db:5432/template_game}
+      SUPERTOKENS_CONNECTION_URI: ${SUPERTOKENS_CONNECTION_URI:-http://supertokens:3567}
+      API_DOMAIN: ${API_DOMAIN:-http://localhost:3000}
+      WEBSITE_DOMAIN: ${WEBSITE_DOMAIN:-http://localhost:3000}
+      JWT_SECRET: ${JWT_SECRET:-change_me}
+      CORS_ALLOW_ALL: "true"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    working_dir: /app/apps/web
+    command:
+      [
+        "sh",
+        "-lc",
+        "[ -x /app/node_modules/.bin/next ] || bun install; exec bunx next dev --hostname 0.0.0.0"
+      ]
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/web/.next
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_ORIGIN: ""
+      WATCHPACK_POLLING: "true"

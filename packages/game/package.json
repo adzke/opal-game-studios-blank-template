@@ -1,0 +1,19 @@
+{
+    "name": "@opal/game",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "dependencies": {
+        "@awesome.me/webawesome": "^3.2.1",
+        "@dimforge/rapier3d-compat": "^0.19.3",
+        "supertokens-web-js": "^0.16.0",
+        "three": "^0.179.1"
+    },
+    "exports": {
+        ".": "./src/index.js",
+        "./auth": "./src/auth.js",
+        "./initGame": "./src/initGame.js",
+        "./style.css": "./src/style.css",
+        "./webawesome": "./src/webawesome.js"
+    }
+}
