@@ -51,6 +51,34 @@ jobs:
         with:
           project_id: ${{ vars.GCP_PROJECT_ID }}
 
+      - name: Validate deploy tag input
+        run: |
+          IMAGE_TAG="${{ inputs.image_tag }}"
+          if [[ "${IMAGE_TAG}" =~ ^sha256: ]] || [[ "${IMAGE_TAG}" =~ ^[a-f0-9]{64}$ ]]; then
+            echo "::error::image_tag must be the build tag (for example b6bbce400431), not an image digest."
+            echo "::error::Run build.yml first, then copy the 'Production Deploy Tag' value from the build summary."
+            exit 1
+          fi
+
+      - name: Verify image tag exists
+        run: |
+          IMAGE_TAG="${{ inputs.image_tag }}"
+          WEB_IMAGE_BASE="${AR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPOSITORY}/${GAME_ID}/web"
+          API_IMAGE_BASE="${AR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPOSITORY}/${GAME_ID}/api"
+
+          web_tag_found="$(gcloud artifacts docker tags list "${WEB_IMAGE_BASE}" --format='value(tag)' | grep -Fx "${IMAGE_TAG}" | head -n1 || true)"
+          api_tag_found="$(gcloud artifacts docker tags list "${API_IMAGE_BASE}" --format='value(tag)' | grep -Fx "${IMAGE_TAG}" | head -n1 || true)"
+
+          if [[ -z "${web_tag_found}" || -z "${api_tag_found}" ]]; then
+            echo "::error::Tag '${IMAGE_TAG}' was not found for both web and api images."
+            echo "Recent web tags:"
+            gcloud artifacts docker tags list "${WEB_IMAGE_BASE}" --limit=10 --format='table(tag,version)'
+            echo ""
+            echo "Recent api tags:"
+            gcloud artifacts docker tags list "${API_IMAGE_BASE}" --limit=10 --format='table(tag,version)'
+            exit 1
+          fi
+
       - name: Deploy web revision
         run: |
           WEB_IMAGE="${AR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPOSITORY}/${GAME_ID}/web:${{ inputs.image_tag }}"

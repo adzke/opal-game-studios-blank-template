@@ -72,3 +72,11 @@ jobs:
             docker tag "${IMAGE_BASE}:${{ steps.tags.outputs.sha_tag }}" "${IMAGE_BASE}:${{ steps.tags.outputs.release_tag }}"
             docker push "${IMAGE_BASE}:${{ steps.tags.outputs.release_tag }}"
           fi
+
+      - name: Show deploy tag
+        run: |
+          echo "### Production Deploy Tag" >> "${GITHUB_STEP_SUMMARY}"
+          echo "" >> "${GITHUB_STEP_SUMMARY}"
+          echo "Use this value in \`deploy-prod.yml\` input \`image_tag\`:" >> "${GITHUB_STEP_SUMMARY}"
+          echo "" >> "${GITHUB_STEP_SUMMARY}"
+          echo "\`${{ steps.tags.outputs.sha_tag }}\`" >> "${GITHUB_STEP_SUMMARY}"
