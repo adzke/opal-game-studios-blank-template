@@ -1,0 +1,74 @@
+name: Build Images
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: ${{ vars.GCP_REGION }}
+  AR_LOCATION: ${{ vars.GCP_ARTIFACT_LOCATION }}
+  AR_REPOSITORY: ${{ vars.GCP_ARTIFACT_REPOSITORY }}
+  GAME_ID: ${{ vars.GAME_ID }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: Configure Docker auth
+        run: gcloud auth configure-docker "${AR_LOCATION}-docker.pkg.dev" --quiet
+
+      - name: Resolve image tags
+        id: tags
+        run: |
+          SHORT_SHA="${GITHUB_SHA::12}"
+          echo "sha_tag=${SHORT_SHA}" >> "${GITHUB_OUTPUT}"
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            echo "release_tag=${GITHUB_REF_NAME}" >> "${GITHUB_OUTPUT}"
+          else
+            echo "release_tag=" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Build and push web image
+        run: |
+          IMAGE_BASE="${AR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPOSITORY}/${GAME_ID}/web"
+          docker build -f apps/web/Dockerfile -t "${IMAGE_BASE}:${{ steps.tags.outputs.sha_tag }}" .
+          docker push "${IMAGE_BASE}:${{ steps.tags.outputs.sha_tag }}"
+          if [[ -n "${{ steps.tags.outputs.release_tag }}" ]]; then
+            docker tag "${IMAGE_BASE}:${{ steps.tags.outputs.sha_tag }}" "${IMAGE_BASE}:${{ steps.tags.outputs.release_tag }}"
+            docker push "${IMAGE_BASE}:${{ steps.tags.outputs.release_tag }}"
+          fi
+
+      - name: Build and push API image
+        run: |
+          IMAGE_BASE="${AR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPOSITORY}/${GAME_ID}/api"
+          docker build -f Dockerfile -t "${IMAGE_BASE}:${{ steps.tags.outputs.sha_tag }}" .
+          docker push "${IMAGE_BASE}:${{ steps.tags.outputs.sha_tag }}"
+          if [[ -n "${{ steps.tags.outputs.release_tag }}" ]]; then
+            docker tag "${IMAGE_BASE}:${{ steps.tags.outputs.sha_tag }}" "${IMAGE_BASE}:${{ steps.tags.outputs.release_tag }}"
+            docker push "${IMAGE_BASE}:${{ steps.tags.outputs.release_tag }}"
+          fi

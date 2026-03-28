@@ -1,0 +1,95 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Artifact Registry image tag to deploy"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: ${{ vars.GCP_REGION }}
+  AR_LOCATION: ${{ vars.GCP_ARTIFACT_LOCATION }}
+  AR_REPOSITORY: ${{ vars.GCP_ARTIFACT_REPOSITORY }}
+  GAME_ID: ${{ vars.GAME_ID }}
+  GAME_SUBDOMAIN: ${{ vars.GAME_SUBDOMAIN }}
+  GAMES_BASE_DOMAIN: ${{ vars.GAMES_BASE_DOMAIN }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: Deploy web revision
+        run: |
+          WEB_IMAGE="${AR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPOSITORY}/${GAME_ID}/web:${{ inputs.image_tag }}"
+          gcloud run services update "${GAME_ID}-web" \
+            --project "${PROJECT_ID}" \
+            --region "${REGION}" \
+            --container web \
+            --port 3000 \
+            --image "${WEB_IMAGE}"
+
+      - name: Deploy API revision
+        run: |
+          API_IMAGE="${AR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPOSITORY}/${GAME_ID}/api:${{ inputs.image_tag }}"
+          gcloud run services update "${GAME_ID}-api" \
+            --project "${PROJECT_ID}" \
+            --region "${REGION}" \
+            --container api \
+            --port 3001 \
+            --image "${API_IMAGE}"
+
+      - name: Run health and auth smoke checks
+        run: |
+          GAME_URL="https://${GAME_SUBDOMAIN}.${GAMES_BASE_DOMAIN}"
+
+          curl -fsSL "${GAME_URL}/" > /dev/null
+          curl -fsSL "${GAME_URL}/health" > /dev/null
+
+          if npm run | grep -q "smoke:auth"; then
+            npm run smoke:auth -- --base-url "${GAME_URL}"
+            exit 0
+          fi
+
+          STATUS="$(curl -s -o /tmp/auth-response.txt -w "%{http_code}" -X POST "${GAME_URL}/auth/session/refresh")"
+          case "${STATUS}" in
+            200|204|401|405)
+              ;;
+            *)
+              cat /tmp/auth-response.txt
+              echo "Unexpected auth smoke status: ${STATUS}"
+              exit 1
+              ;;
+          esac
