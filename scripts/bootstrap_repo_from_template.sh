@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TEMPLATE_REPO="AD/opal-game-studios-blank-template"
+TEMPLATE_REPO="adzke/opal-game-studios-blank-template"
 VISIBILITY="private"
 BASE_DIR="${HOME}/Documents/AD-Games"
 REPO_NAME=""
