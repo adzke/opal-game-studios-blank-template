@@ -1,20 +1,6 @@
-# opal-game-studios-blank-template
+# Generic AI Launcher Prompt
 
-Docker-first blank game starter with:
-- Next.js App Router frontend in `apps/web`
-- shared browser/game runtime in `packages/game`
-- Bun + Express + Socket.io backend in `server`
-- Postgres + SuperTokens auth behind Nginx
-
-Primary local runtime:
-
-```bash
-docker compose up --build
-```
-
-## Generic AI Launcher (Any Assistant)
-
-If a user opens any AI assistant (Codex, ChatGPT, Claude, Gemini) and wants guided setup without clone/fork steps, have them paste this prompt:
+Paste this into any AI assistant:
 
 ```text
 You are my setup guide. I am non-technical.
@@ -32,4 +18,4 @@ If doctor passes, run:
 curl -fsSL https://raw.githubusercontent.com/AD/opal-game-studios-blank-template/main/scripts/bootstrap_repo_from_template.sh | bash -s -- --name my-first-game
 ```
 
-This flow uses the generic script at `scripts/bootstrap_repo_from_template.sh`.
+If the user wants a different repository name, replace `my-first-game`.

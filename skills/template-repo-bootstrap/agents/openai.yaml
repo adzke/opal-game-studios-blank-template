@@ -1,0 +1,4 @@
+interface:
+  display_name: "Template Repo Bootstrap"
+  short_description: "Bootstrap template repo and run local app"
+  default_prompt: "Use $template-repo-bootstrap in doctor mode first, guide the user step by step on installs/sign-in, then create a fresh repo from template, run Docker, and open localhost:3000."
