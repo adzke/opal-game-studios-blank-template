@@ -1,4 +1,4 @@
 interface:
   display_name: "Template Repo Bootstrap"
   short_description: "Bootstrap template repo and run local app"
-  default_prompt: "Use $template-repo-bootstrap in doctor mode first, guide the user step by step on installs/sign-in, then create a fresh repo from template, run Docker, and open localhost:3000."
+  default_prompt: "Use $template-repo-bootstrap in doctor mode first. Do not wait between steps unless blocked by approval, sign-in, or a required decision. Before repo creation, ask once for the game/repository name and suggest short kebab-case options, then create a fresh repo from template, run Docker, and open localhost:3000."
