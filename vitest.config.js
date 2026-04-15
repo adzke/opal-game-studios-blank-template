@@ -12,9 +12,12 @@ export default defineConfig({
         coverage: {
             provider: 'v8',
             reporter: ['text', 'json-summary', 'html'],
-            lines: 90,
+            thresholds: {
+                lines: 90
+            },
             exclude: [
                 'coverage/**',
+                '**/.next/**',
                 'dist/**',
                 'node_modules/**',
                 'server/migrations/**',

@@ -12,7 +12,7 @@
         "dev:docker": "docker compose -f docker-compose.yml -f docker-compose.debug.yml up --build",
         "build": "npm run build --workspace=apps/web",
         "server": "bun server/index.js",
-        "lint": "eslint . --max-warnings=0",
+        "lint": "eslint . --ext .js,.jsx --max-warnings=0",
         "test": "vitest run",
         "test:coverage": "vitest run --coverage"
     },

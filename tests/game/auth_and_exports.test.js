@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('supertokens-web-js', () => ({
     default: {
@@ -20,8 +20,13 @@ vi.mock('supertokens-web-js/recipe/emailpassword', () => ({
 
 describe('auth helpers and package exports', () => {
     beforeEach(() => {
+        vi.unstubAllGlobals();
         vi.resetModules();
         delete window.__API_ORIGIN__;
+    });
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
     });
 
     it('resolves API origin and initializes SuperTokens once', async () => {
@@ -31,6 +36,8 @@ describe('auth helpers and package exports', () => {
 
         expect(resolveApiOrigin()).toBe('http://example.test');
         expect(resolveApiOrigin('http://explicit.test')).toBe('http://explicit.test');
+        delete window.__API_ORIGIN__;
+        expect(resolveApiOrigin()).toBe(window.location.origin);
         initAuth();
         initAuth();
 
@@ -47,5 +54,13 @@ describe('auth helpers and package exports', () => {
         expect(exports.initGame).toBeTypeOf('function');
         expect(exports.createInitialState).toBeTypeOf('function');
         expect(exports.computeJoystickVector).toBeTypeOf('function');
+    });
+
+    it('returns an empty API origin when window is unavailable', async () => {
+        const { resolveApiOrigin } = await import('../../packages/game/src/auth.js');
+
+        vi.stubGlobal('window', undefined);
+
+        expect(resolveApiOrigin()).toBe('');
     });
 });

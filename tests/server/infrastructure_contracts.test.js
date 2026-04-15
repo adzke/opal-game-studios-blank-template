@@ -40,7 +40,8 @@ describe('infrastructure and policy contracts', () => {
         const agents = readRootFile('AGENTS.md');
         const gemini = readRootFile('gemini.md');
 
-        expect(packageJson.scripts.lint).toBe('eslint . --max-warnings=0');
+        expect(packageJson.scripts.lint).toContain('--ext .js,.jsx');
+        expect(packageJson.scripts.lint).toContain('--max-warnings=0');
         expect(agents).toContain('Global line coverage');
         expect(gemini).toContain('>= 90%');
     });
