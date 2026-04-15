@@ -37,6 +37,9 @@ describe('SupertokensProvider and RootLayout', () => {
         const element = RootLayout({ children: <span>content</span> });
 
         expect(metadata.title).toContain('Opal Game Studios Template Game');
+        expect(metadata.icons).toMatchObject({
+            icon: '/icon.svg'
+        });
         expect(element.type).toBe('html');
         expect(element.props.children[1].type).toBe('body');
     });

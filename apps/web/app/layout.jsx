@@ -4,7 +4,10 @@ import { SupertokensProvider } from '../components/Auth/SupertokensProvider.jsx'
 
 export const metadata = {
     title: 'Opal Game Studios Template Game',
-    description: 'A light-themed authenticated template game built with Next.js, Bun, Postgres, SuperTokens, Three.js, and Rapier.'
+    description: 'A light-themed authenticated template game built with Next.js, Bun, Postgres, SuperTokens, Three.js, and Rapier.',
+    icons: {
+        icon: '/icon.svg'
+    }
 };
 
 export default function RootLayout({ children }) {
